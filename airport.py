@@ -2,6 +2,7 @@ import simpy
 import random
 
 RANDOM_SEED = 42
+
 NUM_ATENDENTES = 5		
 NUM_AUTO_MACHINES = 5
 NUM_SECURITY = 7
@@ -9,40 +10,58 @@ NUM_GATES = 3
 NUM_IMMIGRATIONS = 6
 NUM_CUSTOMS = 4
 NUM_LUGGAGE = 2
+
+# Parametros usados para Retirada de bagagem
+MTLS = 142.0
+MEAN_LUGGAGE_TIME = 1 / MTLS
+MEAN_LUGGAGE = 18.0
+DELTA_LUGGAGE = 2.0
+
+# Parametros usados para Alfandega
 MTCF = 78.0
 MEAN_CUSTOMS_FAILURE = 1 / MTCF
 CUSTOM_MEAN = 32.0
 CUSTOM_DELTA = 9.0
+
+# Parametros usados para Imigração
 MTIF = 592.0
 MEAN_IMMIGRATION_FAILURE = 1 / MTIF
 IMMIGRATION_MEAN = 46.0
 IMMIGRATION_DELTA = 8.0
+
+# Parametros usados para Avião
 MTPF = 458.0
 MEAN_PLANE_FAILURE = 1 / MTPF
 MEAN_BOARDING = 13.0
 BOARDING_DELTA = 3.0
+
+# Parametros usados para checagem de segurança
 PASSENGER_MEAN_TIME = 30.0
 PASSENGER_DELTA = 6.0
 MTTS = 270.0							# Mean time to security failure
 MEAN_SECURITY_FAILURE = 1 / MTTS
+
 REPAIR_EXTRAVIATION_PROBLEM = 27.0		# Time it takes to repair a extraviation in minutes
 REPAIR_CUSTOM_PROBLEM = 18.0			# Time it takes to repair a custom in minutes
 REPAIR_PLANE_PROBLEM = 230.0			# Time it takes to repair a plane in minutes
 REPAIR_SECURITY_PROBLEM = 100.0			# Time it takes to repair a security checking in minutes
 REPAIR_MACHINE_TIME = 30.0				# Time it takes to repair a machine in minutes
 REPAIR_ATTENDANT_PROBLEM = 15.0			# Time it takes to repair a attendant problem in minutes
+
+# Parametros usados para os atendimentos
 PT_MEAN = 10.0         					# Avg. processing time in minutes
 PT_SIGMA = 2.0        					# Sigma of processing time computers
 MTTF = 300.0							# Mean Attendant time to failure in minutes
 MEAN = 1 / MTTF							# Repair time
+
 WEEKS = 4								# Time the simulation took
 SIM_TIME = WEEKS * 7 * 24 * 60  		# Simulation time in Minutes
 
 def time_to_luggage_extraviation():
-	return random.expovariate(1 / 142.0)
+	return random.expovariate(MEAN_LUGGAGE_TIME)
 
 def passenger_luggage_time():
-	return random.normalvariate(18.0, 2.0)
+	return random.normalvariate(MEAN_LUGGAGE, DELTA_LUGGAGE)
 	
 class Baggage(object):
 	def __init__(self, env, name):
