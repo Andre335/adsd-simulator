@@ -4,8 +4,11 @@ import random
 RANDOM_SEED = 42
 NUM_ATENDENTES = 5		
 NUM_AUTO_MACHINES = 5
-NUM_SECURITY = 3
-NUM_GATES = 2
+NUM_SECURITY = 7
+NUM_GATES = 3
+NUM_IMMIGRATIONS = 6
+NUM_CUSTOMS = 4
+REPAIR_CUSTOM_PROBLEM = 18.0			# Time it takes to repair a custom in minutes
 REPAIR_PLANE_PROBLEM = 230.0			# Time it takes to repair a plane in minutes
 REPAIR_SECURITY_PROBLEM = 100.0			# Time it takes to repair a security checking in minutes
 REPAIR_MACHINE_TIME = 30.0				# Time it takes to repair a machine in minutes
@@ -17,6 +20,80 @@ MEAN = 1 / MTTF							# Repair time
 WEEKS = 4								# Time the simulation took
 SIM_TIME = WEEKS * 7 * 24 * 60  		# Simulation time in Minutes
 
+def time_to_immigration_failure():
+	return random.expovariate(MEAN)
+
+def passenger_immigration_time():
+	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	
+class Immigration(object):
+	def __init__(self, env, name):
+		self.env = env
+		self.name = name
+		self.broken = False
+		self.passengers_immigrated = 0
+	
+		self.process = env.process(self.running())
+		env.process(self.broke())
+	
+	def running(self):
+		while True:
+			done_in = passenger_immigration_time()
+			while done_in:
+				try:
+					start = self.env.now
+					yield self.env.timeout(done_in)
+					done_in = 0
+				except simpy.Interrupt:
+					self.broken = True
+					done_in -= self.env.now - start
+					yield self.env.timeout(REPAIR_CUSTOM_PROBLEM)
+					self.broken = False
+			self.passengers_immigrated += 1
+	
+	def broke(self):
+		while True:
+			yield self.env.timeout(time_to_immigration_failure())
+			if not self.broken:
+				self.process.interrupt()
+
+def time_to_custom_failure():
+	return random.expovariate(MEAN)
+
+def passenger_custom_time():
+	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	
+class Custom(object):
+	def __init__(self, env, name):
+		self.env = env
+		self.name = name
+		self.broken = False
+		self.passengers_analized = 0
+	
+		self.process = env.process(self.running())
+		env.process(self.broke())
+	
+	def running(self):
+		while True:
+			done_in = passenger_custom_time()
+			while done_in:
+				try:
+					start = self.env.now
+					yield self.env.timeout(done_in)
+					done_in = 0
+				except simpy.Interrupt:
+					self.broken = True
+					done_in -= self.env.now - start
+					yield self.env.timeout(REPAIR_CUSTOM_PROBLEM)
+					self.broken = False
+			self.passengers_analized += 1
+	
+	def broke(self):
+		while True:
+			yield self.env.timeout(time_to_custom_failure())
+			if not self.broken:
+				self.process.interrupt()
+				
 def time_to_plane_failure():
 	return random.expovariate(MEAN)
 
@@ -174,6 +251,7 @@ random.seed(RANDOM_SEED)
 
 # Create an environment and start the setup process
 env = simpy.Environment()
+
 machines = [Machine(env, 'Auto Atendimento %d' % (i+1))
             for i in range(NUM_AUTO_MACHINES)]
 attendants = [Atendente(env, 'Atendente %d' % (i+1))
@@ -181,6 +259,8 @@ attendants = [Atendente(env, 'Atendente %d' % (i+1))
 securities = [Security(env, 'Checagem de Seguranca %d' % (i+1))
 			for i in range(NUM_SECURITY)]
 planes = [Plane(env, 'Aviao %d' % (i+1)) for i in range(NUM_GATES)]
+immigrations = [Immigration(env, 'Imigracao %d' % (i+1)) for i in range(NUM_IMMIGRATIONS)]
+customs = [Custom(env, 'Anfandega %d' % (i+1)) for i in range(NUM_CUSTOMS)]
 
 # Executing
 env.run(until=SIM_TIME)
@@ -198,4 +278,10 @@ for security in securities:
 
 for plane in planes:
     print('%d passageiros embarcaram no %s.' % (plane.passengers_boarded, plane.name))
+    
+for immigration in immigrations:
+    print('%d passageiros passaram pela %s.' % (immigration.passengers_immigrated, immigration.name))
+
+for custom in customs:
+    print('%d passageiros passaram pela %s.' % (custom.passengers_analized, custom.name))
 #print('%s had %d passengers this month.' % (airport.name, airport.passengers_travelled))
