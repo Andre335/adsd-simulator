@@ -9,7 +9,23 @@ NUM_GATES = 3
 NUM_IMMIGRATIONS = 6
 NUM_CUSTOMS = 4
 NUM_LUGGAGE = 2
-REPAIR_EXTRAVIATION_PROBLEM = 27.0			# Time it takes to repair a extraviation in minutes
+MTCF = 78.0
+MEAN_CUSTOMS_FAILURE = 1 / MTCF
+CUSTOM_MEAN = 32.0
+CUSTOM_DELTA = 9.0
+MTIF = 592.0
+MEAN_IMMIGRATION_FAILURE = 1 / MTIF
+IMMIGRATION_MEAN = 46.0
+IMMIGRATION_DELTA = 8.0
+MTPF = 458.0
+MEAN_PLANE_FAILURE = 1 / MTPF
+MEAN_BOARDING = 13.0
+BOARDING_DELTA = 3.0
+PASSENGER_MEAN_TIME = 30.0
+PASSENGER_DELTA = 6.0
+MTTS = 270.0							# Mean time to security failure
+MEAN_SECURITY_FAILURE = 1 / MTTS
+REPAIR_EXTRAVIATION_PROBLEM = 27.0		# Time it takes to repair a extraviation in minutes
 REPAIR_CUSTOM_PROBLEM = 18.0			# Time it takes to repair a custom in minutes
 REPAIR_PLANE_PROBLEM = 230.0			# Time it takes to repair a plane in minutes
 REPAIR_SECURITY_PROBLEM = 100.0			# Time it takes to repair a security checking in minutes
@@ -23,10 +39,10 @@ WEEKS = 4								# Time the simulation took
 SIM_TIME = WEEKS * 7 * 24 * 60  		# Simulation time in Minutes
 
 def time_to_luggage_extraviation():
-	return random.expovariate(MEAN)
+	return random.expovariate(1 / 142.0)
 
 def passenger_luggage_time():
-	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	return random.normalvariate(18.0, 2.0)
 	
 class Baggage(object):
 	def __init__(self, env, name):
@@ -60,10 +76,10 @@ class Baggage(object):
 				self.process.interrupt()
 
 def time_to_immigration_failure():
-	return random.expovariate(MEAN)
+	return random.expovariate(MEAN_IMMIGRATION_FAILURE)
 
 def passenger_immigration_time():
-	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	return random.normalvariate(IMMIGRATION_MEAN, IMMIGRATION_DELTA)
 	
 class Immigration(object):
 	def __init__(self, env, name):
@@ -97,10 +113,10 @@ class Immigration(object):
 				self.process.interrupt()
 
 def time_to_custom_failure():
-	return random.expovariate(MEAN)
+	return random.expovariate(MEAN_CUSTOMS_FAILURE)
 
 def passenger_custom_time():
-	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	return random.normalvariate(CUSTOM_MEAN, CUSTOM_DELTA)
 	
 class Custom(object):
 	def __init__(self, env, name):
@@ -134,10 +150,10 @@ class Custom(object):
 				self.process.interrupt()
 				
 def time_to_plane_failure():
-	return random.expovariate(MEAN)
+	return random.expovariate(MEAN_PLANE_FAILURE)
 
 def passenger_boarding_time():
-	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	return random.normalvariate(MEAN_BOARDING, BOARDING_DELTA)
 	
 class Plane(object):
 	def __init__(self, env, name):
@@ -171,10 +187,10 @@ class Plane(object):
 				self.process.interrupt()
 				
 def time_to_security_failure():
-	return random.expovariate(MEAN)
+	return random.expovariate(MEAN_SECURITY_FAILURE)
 
 def passenger_time():
-	return random.normalvariate(PT_MEAN, PT_SIGMA)
+	return random.normalvariate(PASSENGER_MEAN_TIME, PASSENGER_DELTA)
 	
 class Security(object):
 	def __init__(self, env, name):
